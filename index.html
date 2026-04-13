@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Thu Chi">
+  <link rel="manifest" href="./manifest.json">
+  <title>Thu Chi</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #f5f5f5;
+      --surface: #ffffff;
+      --text: #111111;
+      --text2: #666666;
+      --text3: #999999;
+      --border: rgba(0,0,0,0.1);
+      --green: #1a9e6e;
+      --green-bg: #e6f7f1;
+      --red: #d63b3b;
+      --red-bg: #fceaea;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111111;
+        --surface: #1e1e1e;
+        --text: #f0f0f0;
+        --text2: #aaaaaa;
+        --text3: #666666;
+        --border: rgba(255,255,255,0.1);
+        --green: #2ecf92;
+        --green-bg: #0d2e22;
+        --red: #f07070;
+        --red-bg: #2e0d0d;
+      }
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+    #root { height: 100%; }
+
+    .setup {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 100dvh;
+      padding: 2rem 1.5rem; text-align: center; gap: 1rem;
+    }
+    .setup-emoji { font-size: 48px; }
+    .setup h1 { font-size: 22px; font-weight: 600; }
+    .setup p { color: var(--text2); font-size: 15px; }
+    .setup input {
+      font-size: 32px; font-weight: 600; text-align: center;
+      border: none; border-bottom: 2px solid var(--border);
+      background: transparent; color: var(--text);
+      width: 100%; max-width: 300px; padding: 8px 0; outline: none;
+    }
+    .setup button {
+      margin-top: 0.5rem; padding: 14px 2.5rem;
+      font-size: 17px; font-weight: 600; border: none;
+      border-radius: var(--radius); background: var(--text);
+      color: var(--surface); cursor: pointer;
+    }
+
+    .screen { display: flex; flex-direction: column; min-height: 100dvh;
+      padding: env(safe-area-inset-top, 16px) 0 env(safe-area-inset-bottom, 16px); }
+
+    .balance-card {
+      background: var(--surface); margin: 12px 16px 0;
+      border-radius: var(--radius); padding: 24px 20px 20px;
+      border: 1px solid var(--border); text-align: center;
+    }
+    .balance-label { font-size: 13px; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .balance-amount { font-size: 40px; font-weight: 700; letter-spacing: -1px; }
+    .balance-amount.pos { color: var(--green); }
+    .balance-amount.neg { color: var(--red); }
+
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 16px; }
+    .action-btn { padding: 16px; font-size: 17px; font-weight: 600; border: none;
+      border-radius: var(--radius); cursor: pointer; transition: opacity .15s, transform .1s; }
+    .action-btn:active { opacity: 0.8; transform: scale(0.97); }
+    .action-btn.income { background: var(--green-bg); color: var(--green); }
+    .action-btn.expense { background: var(--red-bg); color: var(--red); }
+
+    .entries-wrap { flex: 1; margin: 0 16px; }
+    .entries-label { font-size: 12px; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .empty { text-align: center; color: var(--text3); font-size: 14px; padding: 3rem 0; }
+
+    .entry { display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .entry:last-child { border-bottom: none; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot.income { background: var(--green); }
+    .dot.expense { background: var(--red); }
+    .entry-body { flex: 1; min-width: 0; }
+    .entry-note { font-size: 15px; font-weight: 500; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; }
+    .no-note { color: var(--text3); font-weight: 400; }
+    .entry-time { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .thumb { display: block; max-height: 48px; margin-top: 6px; border-radius: 8px; cursor: pointer; }
+    .entry-amount { font-size: 15px; font-weight: 600; flex-shrink: 0; }
+    .entry-amount.income { color: var(--green); }
+    .entry-amount.expense { color: var(--red); }
+    .del-btn { background: none; border: none; color: var(--text3);
+      font-size: 14px; cursor: pointer; padding: 4px; flex-shrink: 0; }
+
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 50; animation: fadeIn .15s ease; }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+    .modal { background: var(--surface); width: 100%; max-width: 480px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+      display: flex; flex-direction: column; gap: 12px;
+      animation: slideUp .2s ease; }
+    @keyframes slideUp { from { transform: translateY(60px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
+    .modal-header { display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 17px; font-weight: 600; }
+    .modal.income .modal-title { color: var(--green); }
+    .modal.expense .modal-title { color: var(--red); }
+    .close-btn { background: none; border: none; font-size: 18px; color: var(--text3); cursor: pointer; padding: 4px; }
+
+    .big-input { font-size: 28px; font-weight: 700; text-align: right;
+      border: none; border-bottom: 2px solid var(--border);
+      background: transparent; color: var(--text); width: 100%; padding: 4px 0; outline: none; }
+    .big-input.error { border-bottom-color: var(--red); }
+
+    .note-input { font-size: 16px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); background: var(--bg);
+      color: var(--text); width: 100%; padding: 10px 14px; outline: none; }
+
+    .attach-btn { font-size: 14px; color: var(--text2);
+      border: 1px dashed var(--border); border-radius: var(--radius-sm);
+      background: transparent; padding: 10px 14px; cursor: pointer; text-align: left; }
+
+    .img-preview-wrap { position: relative; display: inline-block; }
+    .img-preview { max-height: 80px; border-radius: 8px; display: block; }
+    .img-remove { position: absolute; top: -6px; right: -6px;
+      background: var(--red); color: white; border: none; border-radius: 50%;
+      width: 20px; height: 20px; font-size: 11px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; }
+
+    .confirm-btn { padding: 15px; font-size: 17px; font-weight: 600; border: none;
+      border-radius: var(--radius); cursor: pointer; }
+    .confirm-btn.income { background: var(--green-bg); color: var(--green); }
+    .confirm-btn.expense { background: var(--red-bg); color: var(--red); }
+
+    /* Image picker menu */
+    .img-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: flex-end; justify-content: center; z-index: 100; }
+    .img-picker-menu { background: var(--surface); width: 100%; max-width: 480px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+      display: flex; flex-direction: column; animation: slideUp .2s ease; }
+    .img-picker-menu button { background: none; border: none; color: var(--text);
+      font-size: 17px; padding: 16px 0; cursor: pointer; text-align: left; }
+    .img-picker-menu button.picker-cancel { color: var(--text3); }
+    .picker-divider { height: 1px; background: var(--border); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <!-- 2 input riêng: camera và album -->
+  <input type="file" id="img-camera" accept="image/*" capture="environment" style="display:none">
+  <input type="file" id="img-album" accept="image/*" style="display:none">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
